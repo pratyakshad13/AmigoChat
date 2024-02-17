@@ -2,6 +2,14 @@ let APP_ID="YOUR-ID"
 let token=null;
 let uid=String(Math.floor(Math.random()*10000));
 
+let queryString=window.location.search
+let urlParams=new URLSearchParams(queryString)
+let roomId=urlParams.get('room');
+
+
+if(!roomId){
+    window.location='lobby.html'
+}
 let client;
 let channel;
 
@@ -22,14 +30,14 @@ let init= async ()=>{
     client= await AgoraRTM.createInstance(APP_ID);
     await client.login({uid,token});
 
-    channel= client.createChannel('main');
+    channel= client.createChannel(roomId);
     await channel.join();
 
     channel.on('MemberJoined',handleUserJoined);
-    //channel.on('MemberLeft',handleUserLeft);
+    channel.on('MemberLeft',handleUserLeft);
     client.on('MessageFromPeer',handleMessageFromPeer);
 
-    localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:false})
+    localStream=await navigator.mediaDevices.getUserMedia({video:true,audio:true})
     document.getElementById('user-1').srcObject =localStream
 
    
@@ -71,7 +79,8 @@ let createPeerConnection =async(MemberId)=>{
     peerConnection=new RTCPeerConnection(servers);
 
     remoteStream= new MediaStream()
-    
+    document.getElementById('user-2').srcObject=remoteStream;//------------
+    document.getElementById('user-2').style.display="block";
 
     if(!localStream){
         localStream= await navigator.mediaDevices.getUserMedia({video:true,audio:false})
@@ -107,7 +116,7 @@ let createOffer= async (MemberId)=>{
 }
 
 
-let createAnswer =async(MemberId,offer)=>{
+let createAnswer =async (MemberId,offer)=>{
     await createPeerConnection(MemberId);
 
     await peerConnection.setRemoteDescription(offer);
@@ -118,14 +127,46 @@ let createAnswer =async(MemberId,offer)=>{
     client.sendMessageToPeer({text:JSON.stringify({'type':'answer','answer':answer})},MemberId)
 }
 
-let addAnswer= async(answer)=>{
+let addAnswer= async (answer)=>{
     if(!peerConnection.currentRemoteDescription){
         peerConnection.setRemoteDescription(answer);
     }
+}
 
-
+let leaveChannel= async() =>{
+    await channel.leave();
+    await client.logout();
 
 }
 
+
+let toggleCamera =async()=>{
+    let videoTrack =localStream.getTracks().find(track =>track.kind==='video')
+    if(videoTrack.enabled){
+        videoTrack.enabled= false;
+        document.getElementById('camera-btn').style.backgroundColor ='rgb(255,80,80)'
+    }
+    else{
+        videoTrack.enabled= true;
+        document.getElementById('camera-btn').style.backgroundColor = 'rgb(255,116,151,.9)';
+    }
+
+}
+
+let toggleAudio =async()=>{
+    let audioTrack =localStream.getTracks().find(track =>track.kind==='audio')
+    if(audioTrack.enabled){
+        audioTrack.enabled= false;
+        document.getElementById('mic-btn').style.backgroundColor ='rgb(255,80,80)'
+    }
+    else{
+        audioTrack.enabled= true;
+        document.getElementById('mic-btn').style.backgroundColor = 'rgb(255,116,151,.9)';
+    }
+
+}
+window.addEventListener('beforeunload',leaveChannel);
+document.getElementById('camera-btn').addEventListener('click',toggleCamera)
+document.getElementById('mic-btn').addEventListener('click',toggleAudio)
 
 init()
