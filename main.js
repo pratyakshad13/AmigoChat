@@ -1,5 +1,5 @@
-let APP_ID="YOUR-ID"
-let token=null;
+let APP_ID="3ca88e9c798a43cebd2b48df389b989e"
+let token;
 let uid=String(Math.floor(Math.random()*10000));
 
 let client;
@@ -20,6 +20,7 @@ const servers= {
 let init= async ()=>{
 
     client= await AgoraRTM.createInstance(APP_ID);
+    console.log(client);
     await client.login({uid,token});
 
     channel= client.createChannel('main');
