@@ -13,10 +13,26 @@
 .video-player{
     background-color: black;
     width: 100%;
-    height: 300px;
+    height: 100%;
+    object-fit: cover;
 }
 #user-2{
     display:none;
+}
+
+.smallFrame{
+    position: fixed;
+    top:20px;
+    left:20px;
+    height: 170px;
+    width:300px;
+    border-radius: 5px;
+    border: #ffb3c6;
+    -webkit-box-shadow:3px 3px 15px -1px black;
+    box-shadow: 3px 3px 15px -1px rgb(0,0,0,0.77);
+    z-index:999;
+
+
 }
 
 #controls{
@@ -47,4 +63,13 @@
     background-color: rgb(255,80,80);
 }
 
-
+@media screen and(max-width:600px) {
+    .smallFrame{
+        height: 80px;
+        width:120px;
+    }
+    .control-container img{
+        height: 20px;
+        width: 20px;
+    }
+}
